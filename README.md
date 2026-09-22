@@ -72,3 +72,25 @@ Auf dem Handy: `http://192.168.1.42:3000` oeffnen.
 
 - `PORT` – Port des Servers (Standard `3000`)
 - `SLIDESHOW_INTERVAL_MS` – Wechsel-Intervall der Slideshow (Standard `6000`)
+- `UPLOAD_TOKEN` – Zugangs-Token fuer Upload/Loeschen. Leer lassen deaktiviert den Schutz (nur LAN-Betrieb). Fuer Cloud-Betrieb unbedingt setzen!
+
+## Cloud-Betrieb (Railway / PaaS)
+
+Handy laedt zur Cloud hoch, der Raspberry Pi projiziert von dort – alle drei brauchen Internet, kein gemeinsames WLAN noetig. HTTPS kommt automatisch von der Plattform (wichtig fuer die Handy-Kamera).
+
+1. Auf [Railway](https://railway.app) ein neues Projekt anlegen, das Repo verbinden oder per `railway up` deployen.
+2. **Wichtig:** In den Variablen `UPLOAD_TOKEN` auf einen schwer zu ratenden Wert setzen.
+3. Nach dem Deploy bekommst du eine HTTPS-URL, z.B. `https://<name>.up.railway.app`.
+   - Handy: `https://<name>.up.railway.app/phone`
+   - Raspberry Pi: `https://<name>.up.railway.app/projector`
+   - Steuerung: `https://<name>.up.railway.app/control`
+4. Auf dem Pi den Kiosk-Browser auf die `/projector`-URL umstellen.
+
+Hinweis: Auf einer PaaS-VM ist der Speicher fluechtig – Fotos koennen bei einem Re-Deploy verloren gehen. Fuer dauerhafte Speicherung eine eigene VM oder ein Volume/Objekt-Speicher verwenden.
+
+Lokal in Docker testen:
+```bash
+docker build -t photo-loader .
+docker run --rm -p 3000:3000 -e UPLOAD_TOKEN=geheim photo-loader
+```
+

@@ -13,6 +13,8 @@ const UPLOADS_DIR = path.join(ROOT, 'uploads');
 const CLIENT_DIST = path.join(ROOT, '..', 'client', 'dist');
 
 const PORT = process.env.PORT || 3000;
+// Wenn UPLOAD_TOKEN gesetzt ist, wird er fuer Upload/Delete verlangt.
+const UPLOAD_TOKEN = process.env.UPLOAD_TOKEN || '';
 
 fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
@@ -47,12 +49,22 @@ const upload = multer({
 // --- Statische Dateien ---
 app.use('/uploads', express.static(UPLOADS_DIR));
 
+// --- Auth-Middleware: schuetzt schreibende Endpunkte, falls Token gesetzt ---
+function requireToken(req, res, next) {
+  if (!UPLOAD_TOKEN) return next();
+  const provided = req.get('x-upload-token') || req.query.token;
+  if (provided !== UPLOAD_TOKEN) {
+    return res.status(401).json({ error: 'Ungueltiger oder fehlender Zugangs-Token' });
+  }
+  next();
+}
+
 // --- API ---
 app.get('/api/state', (_req, res) => {
   res.json(slideshow.getState());
 });
 
-app.post('/api/photos', upload.single('photo'), (req, res) => {
+app.post('/api/photos', requireToken, upload.single('photo'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'Keine Datei hochgeladen' });
   }
@@ -63,7 +75,7 @@ app.post('/api/photos', upload.single('photo'), (req, res) => {
   res.status(201).json(photo);
 });
 
-app.delete('/api/photos/:id', (req, res) => {
+app.delete('/api/photos/:id', requireToken, (req, res) => {
   const photo = slideshow.photos.find((p) => p.id === req.params.id);
   if (!photo) return res.status(404).json({ error: 'Nicht gefunden' });
   const filename = path.basename(photo.url);
@@ -72,7 +84,7 @@ app.delete('/api/photos/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-app.delete('/api/photos', async (_req, res) => {
+app.delete('/api/photos', requireToken, async (_req, res) => {
   for (const p of slideshow.photos) {
     const filename = path.basename(p.url);
     await fs.promises.unlink(path.join(UPLOADS_DIR, filename)).catch(() => {});

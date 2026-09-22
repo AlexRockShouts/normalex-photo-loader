@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { socket, sendControl, getState } from '../api.js';
+import { socket, sendControl, getState, deletePhoto, deleteAllPhotos } from '../api.js';
 
 const INTERVALS = [
   { label: '2s', value: 2000 },
@@ -61,7 +61,7 @@ export default function ControlView() {
               <img src={p.url} alt={p.name} />
             </button>
             <span className="thumb-num">{i + 1}</span>
-            <button className="thumb-del" onClick={() => deletePhoto(p)} title="Loeschen">✕</button>
+            <button className="thumb-del" onClick={() => deletePhotoItem(p)} title="Loeschen">✕</button>
           </div>
         ))}
       </div>
@@ -71,11 +71,11 @@ export default function ControlView() {
   );
 }
 
-async function deletePhoto(p) {
-  await fetch(`/api/photos/${p.id}`, { method: 'DELETE' });
+async function deletePhotoItem(p) {
+  await deletePhoto(p.id);
 }
 
 async function clearAll() {
   if (!confirm('Wirklich ALLE Fotos loeschen?')) return;
-  await fetch('/api/photos', { method: 'DELETE' });
+  await deleteAllPhotos();
 }

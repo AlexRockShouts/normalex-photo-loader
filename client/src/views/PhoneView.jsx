@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { uploadPhoto, getState } from '../api.js';
+import { uploadPhoto, getState, getToken, setToken } from '../api.js';
 
 export default function PhoneView() {
   const fileInput = useRef(null);
@@ -7,6 +7,14 @@ export default function PhoneView() {
   const [status, setStatus] = useState('idle'); // idle | uploading | success | error
   const [message, setMessage] = useState('');
   const [photoCount, setPhotoCount] = useState(0);
+  const [token, setTokenState] = useState(getToken() || tokenFromUrl());
+
+  function tokenFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get('token');
+    if (t) setToken(t);
+    return t || '';
+  }
 
   async function refreshCount() {
     try {
@@ -52,6 +60,16 @@ export default function PhoneView() {
       </header>
 
       <main className="phone-body">
+        <label className="token-field">
+          <span>Zugangs-Token</span>
+          <input
+            type="text"
+            value={token}
+            placeholder="nur bei Bedarf"
+            onChange={(e) => { setTokenState(e.target.value); setToken(e.target.value); }}
+          />
+        </label>
+
         {preview ? (
           <img src={preview} alt="Vorschau" className="preview" />
         ) : (

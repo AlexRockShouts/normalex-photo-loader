@@ -115,6 +115,24 @@ a { color: inherit; text-decoration: none; }
 .msg.success { background: rgba(70, 167, 88, 0.15); color: var(--ok); }
 .msg.error { background: rgba(229, 72, 77, 0.15); color: var(--danger); }
 
+.token-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 360px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.token-field input {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: 1rem;
+}
+
 /* ---------- Projector ---------- */
 .projector {
   width: 100%;
