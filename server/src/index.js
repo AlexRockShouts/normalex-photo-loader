@@ -75,6 +75,11 @@ function requireView(req, res, next) {
 app.use('/uploads', requireView, express.static(UPLOADS_DIR));
 
 // --- API ---
+// Oeffentlicher Health-Endpunkt fuer Railway (ohne Auth)
+app.get('/healthz', (_req, res) => {
+  res.json({ ok: true });
+});
+
 app.get('/api/state', requireView, (_req, res) => {
   res.json(slideshow.getState());
 });
