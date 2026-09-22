@@ -1,8 +1,17 @@
 import { io } from 'socket.io-client';
 
-export const socket = io();
-
 const TOKEN_KEY = 'photoLoaderToken';
+
+function urlParam(name) {
+  return new URLSearchParams(window.location.search).get(name) || '';
+}
+
+// View-Token kommt aus der URL (?view=...) und ist fuer Projektor/Steuerung gedacht.
+const viewToken = urlParam('view');
+
+export const socket = io({
+  auth: { view: viewToken, token: getToken() },
+});
 
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY) || '';
@@ -13,13 +22,27 @@ export function setToken(token) {
   else localStorage.removeItem(TOKEN_KEY);
 }
 
+// Liefert die Query-Anhaenge fuer Anzeige-Zugriff (view-Token, sonst Upload-Token).
+function viewQuery() {
+  const q = new URLSearchParams();
+  const v = viewToken || getToken();
+  if (v) q.set('view', v);
+  return q.toString();
+}
+
+// Haengt den View-Zugriff an Bild-URLs an (fuer Projektor & Steuerung).
+export function imgUrl(url) {
+  const q = viewQuery();
+  return q ? `${url}?${q}` : url;
+}
+
 function authHeaders() {
   const t = getToken();
   return t ? { 'x-upload-token': t } : {};
 }
 
 export function getState() {
-  return fetch('/api/state').then((r) => r.json());
+  return fetch(`/api/state?${viewQuery()}`).then((r) => r.json());
 }
 
 export function uploadPhoto(file) {

@@ -15,6 +15,8 @@ const CLIENT_DIST = path.join(ROOT, '..', 'client', 'dist');
 const PORT = process.env.PORT || 3000;
 // Wenn UPLOAD_TOKEN gesetzt ist, wird er fuer Upload/Delete verlangt.
 const UPLOAD_TOKEN = process.env.UPLOAD_TOKEN || '';
+// Wenn VIEW_TOKEN gesetzt ist, wird er (oder der Upload-Token) fuer Anzeige verlangt.
+const VIEW_TOKEN = process.env.VIEW_TOKEN || '';
 
 fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
@@ -59,8 +61,21 @@ function requireToken(req, res, next) {
   next();
 }
 
+// --- Auth-Middleware: schuetzt das Anzeigen (State + Bilder + Socket), falls VIEW_TOKEN gesetzt ---
+// Der Upload-Token gilt hier ebenfalls, damit das Handy Fotos anzeigen/zählen kann.
+function requireView(req, res, next) {
+  if (!VIEW_TOKEN) return next();
+  const view = req.query.view;
+  const token = req.query.token;
+  if (view === VIEW_TOKEN || (UPLOAD_TOKEN && token === UPLOAD_TOKEN)) return next();
+  return res.status(401).json({ error: 'Zugriff verweigert: gueltiger View-Token fehlt' });
+}
+
+// --- Statische Dateien ---
+app.use('/uploads', requireView, express.static(UPLOADS_DIR));
+
 // --- API ---
-app.get('/api/state', (_req, res) => {
+app.get('/api/state', requireView, (_req, res) => {
   res.json(slideshow.getState());
 });
 
@@ -119,6 +134,13 @@ app.use((err, _req, res, _next) => {
 
 // --- WebSocket: Echtzeit-State an alle Clients ---
 slideshow.onChange = (state) => io.emit('state', state);
+
+io.use((socket, next) => {
+  if (!VIEW_TOKEN) return next();
+  const { view, token } = socket.handshake.auth || {};
+  if (view === VIEW_TOKEN || (UPLOAD_TOKEN && token === UPLOAD_TOKEN)) return next();
+  next(new Error('unauthorized'));
+});
 
 io.on('connection', (socket) => {
   socket.emit('state', slideshow.getState());

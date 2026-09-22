@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { socket, sendControl } from '../api.js';
+import { socket, sendControl, imgUrl, getState } from '../api.js';
 
 export default function ProjectorView() {
   const [state, setState] = useState(null);
@@ -25,7 +25,7 @@ export default function ProjectorView() {
       tabIndex={0}
     >
       {photo ? (
-        <img key={photo.id} src={photo.url} alt={photo.name} className="slide" />
+        <img key={photo.id} src={imgUrl(photo.url)} alt={photo.name} className="slide" />
       ) : (
         <div className="empty">
           <span className="empty-icon">📷</span>
@@ -47,8 +47,7 @@ export default function ProjectorView() {
 
 async function getInitialState(setState) {
   try {
-    const r = await fetch('/api/state');
-    setState(await r.json());
+    setState(await getState());
   } catch {
     /* ignore */
   }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { socket, sendControl, getState, deletePhoto, deleteAllPhotos } from '../api.js';
+import { socket, sendControl, getState, deletePhoto, deleteAllPhotos, imgUrl } from '../api.js';
 
 const INTERVALS = [
   { label: '2s', value: 2000 },
@@ -58,7 +58,7 @@ export default function ControlView() {
         {photos.map((p, i) => (
           <div key={p.id} className={`thumb ${p.id === currentId ? 'active' : ''}`}>
             <button className="thumb-img" onClick={() => sendControl('goto', { id: p.id })}>
-              <img src={p.url} alt={p.name} />
+              <img src={imgUrl(p.url)} alt={p.name} />
             </button>
             <span className="thumb-num">{i + 1}</span>
             <button className="thumb-del" onClick={() => deletePhotoItem(p)} title="Loeschen">✕</button>
