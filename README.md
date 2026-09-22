@@ -48,7 +48,12 @@ cd ../server && npm start   # http://localhost:3000 (liefert auch den Client aus
 
 ## Raspberry Pi + Samsung Freestyle (per HDMI)
 
-Der Pi laeuft als **Server** und zeigt die **Projektion** auf dem Freestyle.
+Es gibt **zwei Betriebsarten**:
+
+**A) LAN-Modus** – Pi laeuft als Server **und** zeigt die Projektion. (`deploy/pi/pi-setup.sh`)
+**B) Cloud-Modus** – Server liegt in der Cloud; der Pi zeigt nur die Projektion per Kiosk-Browser. (`deploy/pi/pi-setup-cloud.sh`)
+
+### A) LAN-Modus
 
 1. Projekt auf den Pi kopieren (z.B. `git clone` oder `scp`) nach `~/normalex-photo-loader`.
 2. Ausfuehren:
@@ -58,10 +63,19 @@ Der Pi laeuft als **Server** und zeigt die **Projektion** auf dem Freestyle.
    ```
 3. `sudo reboot`.
 
+### B) Cloud-Modus (kein Server auf dem Pi noetig)
+
+```bash
+curl -sL -o pi-setup-cloud.sh \
+  https://raw.githubusercontent.com/AlexRockShouts/normalex-photo-loader/main/deploy/pi/pi-setup-cloud.sh
+bash pi-setup-cloud.sh https://<name>.up.railway.app/projector
+sudo reboot
+```
+
 Nach dem Boot:
-- Der Server laeuft als systemd-Dienst (`photo-loader`).
-- Chromium startet automatisch im Vollbild auf `/projector`.
-- Handys und Freestyle muessen im **gleichen WLAN** sein wie der Pi.
+- Der Server laeuft (LAN) bzw. die Cloud-URL (Cloud) wird angezeigt.
+- Chromium startet automatisch im Vollbild auf die Projektor-Ansicht.
+- Handys und Freestyle muessen im **gleichen WLAN** sein wie der Pi (LAN-Modus) bzw. Internet haben (Cloud-Modus).
 
 ## Im WLAN erreichbar machen
 
